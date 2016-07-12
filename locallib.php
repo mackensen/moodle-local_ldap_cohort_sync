@@ -108,6 +108,7 @@ class local_ldap_cohort_sync extends auth_plugin_ldap {
     public function get_group_members($group) {
         if ($this->config->user_type == 'ad') {
             // TODO: Implement AD support.
+            return false;
         } else {
             $members = $this->get_group_members_openldap($group);
         }
@@ -145,6 +146,7 @@ class local_ldap_cohort_sync extends auth_plugin_ldap {
                             $users[] = core_text::strtolower($memberparts[1]);
                         } else {
                             // TODO: support for nested groups.
+                            return false;
                         }
                     } else {
                         $users[] = core_text::strtolower($member);
