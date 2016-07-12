@@ -1,6 +1,11 @@
 language: php
 
 sudo: false
+addons:
+  apt:
+    packages:
+    - ldap-utils
+    - slapd
 
 cache:
   directories:
@@ -29,6 +34,18 @@ before_install:
 
 install:
   - moodle-plugin-ci install
+  - moodle-plugin-ci add-config '$CFG->auth = "manual,ldap";'
+  - moodle-plugin-ci add-config 'define("TEST_AUTH_LDAP_HOST_URL", "ldap://localhost:3389");'
+  - moodle-plugin-ci add-config 'define("TEST_AUTH_LDAP_BIND_DN", "cn=admin,dc=example,dc=com");'
+  - moodle-plugin-ci add-config 'define("TEST_AUTH_LDAP_BIND_PW", "password");'
+  - moodle-plugin-ci add-config 'define("TEST_AUTH_LDAP_DOMAIN", "dc=example,dc=com");'
+
+before_script:
+  - phpenv config-add moodle/local/ldap/tests/fixtures/enable-ldap.ini
+  - mkdir /tmp/slapd
+  - slapd -f moodle/local/ldap/tests/fixtures/slapd.conf -h ldap://localhost:3389 &
+  - sleep 3
+  - ldapadd -H ldap://127.0.0.1:3389 -D "cn=admin,dc=example,dc=com" -w password -f moodle/local/ldap_cohort_sync/tests/fixtures/bootstrap.ldif
 
 script:
   - moodle-plugin-ci phplint
